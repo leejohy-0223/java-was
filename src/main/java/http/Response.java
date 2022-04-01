@@ -12,8 +12,27 @@ public class Response {
 
     private final Map<String, String> header = new HashMap<>();
     private final List<Cookie> cookies = new ArrayList<>();
+    private final Map<String, Object> model = new HashMap<>();
 
+    private String viewName;
+    private String responseBody;
     private HttpStatus httpStatus;
+
+    public boolean hasResponseBody() {
+        return responseBody != null && !responseBody.equals("");
+    }
+
+    public Map<String, Object> getModel() {
+        return model;
+    }
+
+    public String getResponseBody() {
+        return responseBody;
+    }
+
+    public void setResponseBody(String responseBody) {
+        this.responseBody = responseBody;
+    }
 
     public HttpStatus getHttpStatus() {
         return httpStatus;
@@ -28,8 +47,19 @@ public class Response {
     }
 
     public void setRedirectUrl(String redirectUrl) {
-        this.httpStatus = HttpStatus.FOUND;
         header.put(LOCATION_HEADER, redirectUrl);
+    }
+
+    public String getViewName() {
+        return viewName;
+    }
+
+    public void addModel(String name, Object value) {
+        model.put(name, value);
+    }
+
+    public void setViewName(String viewName) {
+        this.viewName = viewName;
     }
 
     public void addHeader(String key, String value) {
@@ -50,5 +80,9 @@ public class Response {
 
     public List<Cookie> getCookies() {
         return Collections.unmodifiableList(cookies);
+    }
+
+    public boolean hasViewName() {
+        return viewName != null && !viewName.equals("");
     }
 }

@@ -4,6 +4,7 @@ import java.util.Map;
 
 import db.DataBase;
 import http.HttpServlet;
+import http.HttpStatus;
 import http.Request;
 import http.Response;
 import model.User;
@@ -20,6 +21,7 @@ public class UserCreateServlet extends HttpServlet {
             queryParameter.get("name"),
             queryParameter.get("email")
         );
+        response.setHttpStatus(HttpStatus.FOUND);
         if (DataBase.isUserIdExist(user.getUserId())) {
             response.setRedirectUrl("/user/form.html");
             return response;

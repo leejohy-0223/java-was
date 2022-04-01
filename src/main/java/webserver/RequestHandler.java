@@ -44,8 +44,8 @@ public class RequestHandler extends Thread {
         log.debug("New Client Connect! Connected IP : {}, Port : {}", connection.getInetAddress(),
             connection.getPort());
         // TODO : private method 들 분석해서 RequestHandler 의 역할을
-            // TODO :  1. 일단 분리를 해보기
-            // TODO :  2. 너무 많은 의존성이 생길 경우, 의존성을 줄일 수 있는 방법 고민
+        // TODO :  1. 일단 분리를 해보기
+        // TODO :  2. 너무 많은 의존성이 생길 경우, 의존성을 줄일 수 있는 방법 고민
         // TODO : 한군데 묶어놓으면 어떨까?
         // TODO : 에러 발생시, 오류 response 보내도록 개선
 
@@ -64,7 +64,8 @@ public class RequestHandler extends Thread {
             processRequest(out, requestData);
 
         } catch (Exception e) {
-            log.error(e.getMessage());
+            e.printStackTrace();
+            // log.error(e.getMessage());
         }
     }
 
@@ -89,7 +90,7 @@ public class RequestHandler extends Thread {
         processStaticRequest(out, requestData.getHttpRequestLine(), contentType);
     }
 
-    private void processDynamicRequest(OutputStream out, HttpRequestData requestData) throws  Exception {
+    private void processDynamicRequest(OutputStream out, HttpRequestData requestData) throws Exception {
         Response response = dispatcher.handleRequest(requestData);
 
         dynamicResponse(out, response);
@@ -104,7 +105,19 @@ public class RequestHandler extends Thread {
             headers.put(key, response.findHeader(key));
         }
 
+        byte[] bytes = new byte[] {};
+        if (response.hasResponseBody()) {
+            bytes = response.getResponseBody().getBytes();
+            headers.put("Content-Type", "text/html" + ";charset=utf-8");
+            headers.put("Content-Length", String.valueOf(bytes.length));
+        }
+
         responseHeader(dos, response.getHttpStatus(), headers, response.getCookies());
+
+        if (response.hasResponseBody()) {
+            responseBody(dos, bytes);
+        }
+
         flush(dos);
     }
 
@@ -148,7 +161,8 @@ public class RequestHandler extends Thread {
         responseHeader(dos, httpStatus, headers, Collections.emptyList());
     }
 
-    private void responseHeader(DataOutputStream dos, HttpStatus httpStatus, Map<String, String> headers, List<Cookie> cookies) {
+    private void responseHeader(DataOutputStream dos, HttpStatus httpStatus, Map<String, String> headers,
+        List<Cookie> cookies) {
         try {
             dos.writeBytes(String.format("HTTP/1.1 %d %s \r\n", httpStatus.getStatusCode(), httpStatus.name()));
             for (String key : headers.keySet()) {

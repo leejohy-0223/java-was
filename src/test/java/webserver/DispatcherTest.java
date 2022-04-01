@@ -3,6 +3,10 @@ package webserver;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +37,7 @@ class DispatcherTest {
             .addMapping("/get/stub", new GetStub())
             .addMapping("/post/stub", new PostStub())
             .build();
-        dispatcher = new Dispatcher(requestMapping);
+        dispatcher = new Dispatcher(requestMapping, new ViewResolver(System.getProperty("user.dir") + "/webapp"));
     }
 
     @Nested
@@ -77,7 +81,7 @@ class DispatcherTest {
 
             @DisplayName("GET 요청이 올 경우 OK 상태가 반환된다.")
             @Test
-            void valid_GET_url_request() {
+            void valid_GET_url_request() throws IOException {
                 // given
                 requestData = new HttpRequestData();
                 HttpRequestLine httpRequestLine = new HttpRequestLine();
@@ -138,7 +142,7 @@ class DispatcherTest {
 
     @DisplayName("유효한 POST Mapping url에 대해 POST 메서드로 요청이 올 경우 FOUND 상태가 반환된다.")
     @Test
-    void valid_POST_url_request() {
+    void valid_POST_url_request() throws IOException {
         // given
         requestData = new HttpRequestData();
         HttpRequestLine httpRequestLine = new HttpRequestLine();

@@ -5,6 +5,7 @@ import java.util.Map;
 import db.DataBase;
 import http.Cookie;
 import http.HttpServlet;
+import http.HttpStatus;
 import http.Request;
 import http.Response;
 import http.Session;
@@ -28,10 +29,12 @@ public class LoginServlet extends HttpServlet {
                 sessionIdCookie.setMaxAge(60 * 30);
                 response.addCookie(sessionIdCookie);
                 response.setRedirectUrl("/index.html");
+                response.setHttpStatus(HttpStatus.FOUND);
                 return response;
             }
         }
         response.setRedirectUrl("/user/login_failed.html");
+        response.setHttpStatus(HttpStatus.FOUND);
         return response;
     }
 
