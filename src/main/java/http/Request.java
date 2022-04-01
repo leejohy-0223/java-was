@@ -13,8 +13,8 @@ public class Request {
     private static final String COOKIE = "Cookie";
     public static final String SESSION_ID = "sessionId";
 
+    private final Map<String, String> parameters = new HashMap<>();
     private HttpMethod httpMethod;
-    private Map<String, String> parameters = new HashMap<>();
     private Map<String, String> cookies = new HashMap<>();
     private String sessionId;
 
@@ -54,25 +54,17 @@ public class Request {
         request.addParameters(requestData.getRequestBody());
     }
 
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    public String getCookies(String cookieName) {
-        return cookies.get(cookieName);
-    }
-
     private static boolean isGetRequest(String queryString, HttpMethod httpMethod) {
         return queryString != null && !queryString.equals("") && httpMethod.equals(HttpMethod.GET);
     }
 
-    public Map<String, String> getParameters() {
-        return Collections.unmodifiableMap(parameters);
-    }
+    // public methods
 
     public void addParameters(Map<String, String> parameters) {
         this.parameters.putAll(parameters);
     }
+
+    // getter setter
 
     public HttpMethod getHttpMethod() {
         return httpMethod;
@@ -80,6 +72,14 @@ public class Request {
 
     public void setHttpMethod(HttpMethod httpMethod) {
         this.httpMethod = httpMethod;
+    }
+
+    public Map<String, String> getParameters() {
+        return Collections.unmodifiableMap(parameters);
+    }
+
+    public String getSessionId() {
+        return sessionId;
     }
 
     public void setSessionId(String sessionId) {

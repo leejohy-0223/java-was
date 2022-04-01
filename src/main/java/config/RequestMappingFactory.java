@@ -6,7 +6,8 @@ import servlet.UserCreateServlet;
 import servlet.UserListServlet;
 
 public class RequestMappingFactory {
-    private RequestMappingFactory() {}
+    private RequestMappingFactory() {
+    }
 
     public static RequestMapping createRequestMapping() {
         return new RequestMapping.Builder()

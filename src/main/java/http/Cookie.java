@@ -31,10 +31,6 @@ public class Cookie {
         return name;
     }
 
-    public String getValue() {
-        return value;
-    }
-
     public String getPath() {
         return path;
     }
@@ -47,8 +43,10 @@ public class Cookie {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(name).append("=").append(value);
-        if (isPathSet()) sb.append(";").append("Path=").append(path);
-        if (isMaxAgeSet()) sb.append(";").append("Max-Age=").append(maxAge);
+        if (isPathSet())
+            sb.append(";").append("Path=").append(path);
+        if (isMaxAgeSet())
+            sb.append(";").append("Max-Age=").append(maxAge);
 
         return sb.toString();
     }

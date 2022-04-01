@@ -10,13 +10,13 @@ public class StaticResourceProcessor {
 
     private static StaticResourceProcessor instance;
 
-    private StaticResourceProcessor() { }
+    private StaticResourceProcessor() {
+    }
 
     public synchronized static StaticResourceProcessor getInstance() {
         if (instance == null) {
             instance = new StaticResourceProcessor();
         }
-
         return instance;
     }
 
