@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import http.Cookie;
+import http.HttpHeaders;
 import http.HttpMethod;
 import http.HttpStatus;
 import http.Response;
@@ -43,11 +44,6 @@ public class RequestHandler extends Thread {
     public void run() {
         log.debug("New Client Connect! Connected IP : {}, Port : {}", connection.getInetAddress(),
             connection.getPort());
-        // TODO : private method 들 분석해서 RequestHandler 의 역할을
-        // TODO :  1. 일단 분리를 해보기
-        // TODO :  2. 너무 많은 의존성이 생길 경우, 의존성을 줄일 수 있는 방법 고민
-        // TODO : 한군데 묶어놓으면 어떨까?
-        // TODO : 에러 발생시, 오류 response 보내도록 개선
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
              OutputStream out = connection.getOutputStream()) {
@@ -64,8 +60,7 @@ public class RequestHandler extends Thread {
             processRequest(out, requestData);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            // log.error(e.getMessage());
+            log.error(e.getMessage());
         }
     }
 
@@ -92,7 +87,6 @@ public class RequestHandler extends Thread {
 
     private void processDynamicRequest(OutputStream out, HttpRequestData requestData) throws Exception {
         Response response = dispatcher.handleRequest(requestData);
-
         dynamicResponse(out, response);
     }
 
@@ -108,8 +102,8 @@ public class RequestHandler extends Thread {
         byte[] bytes = new byte[] {};
         if (response.hasResponseBody()) {
             bytes = response.getResponseBody().getBytes();
-            headers.put("Content-Type", "text/html" + ";charset=utf-8");
-            headers.put("Content-Length", String.valueOf(bytes.length));
+            headers.put(HttpHeaders.CONTENT_TYPE.getName(), "text/html" + ";charset=utf-8");
+            headers.put(HttpHeaders.CONTENT_LENGTH.getName(), String.valueOf(bytes.length));
         }
 
         responseHeader(dos, response.getHttpStatus(), headers, response.getCookies());
@@ -149,8 +143,8 @@ public class RequestHandler extends Thread {
         DataOutputStream dos = new DataOutputStream(out);
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Content-Type", contentType + ";charset=utf-8");
-        headers.put("Content-Length", String.valueOf(body.length));
+        headers.put(HttpHeaders.CONTENT_TYPE.getName(), contentType + ";charset=utf-8");
+        headers.put(HttpHeaders.CONTENT_LENGTH.getName(), String.valueOf(body.length));
 
         responseHeader(dos, httpStatus, headers);
         responseBody(dos, body);
@@ -169,7 +163,7 @@ public class RequestHandler extends Thread {
                 dos.writeBytes(key + ": " + headers.get(key) + "\r\n");
             }
             for (Cookie cookie : cookies) {
-                dos.writeBytes("Set-Cookie: " + cookie);
+                dos.writeBytes(HttpHeaders.SET_COOKIE.getName() + ": " + cookie);
             }
             dos.writeBytes("\r\n");
         } catch (IOException e) {

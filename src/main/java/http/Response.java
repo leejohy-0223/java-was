@@ -8,11 +8,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class Response {
-    private final static String LOCATION_HEADER = "Location";
 
     private final Map<String, String> header = new HashMap<>();
-    private final List<Cookie> cookies = new ArrayList<>();
     private final Map<String, Object> model = new HashMap<>();
+    private final List<Cookie> cookies = new ArrayList<>();
 
     private String viewName;
     private String responseBody;
@@ -22,8 +21,50 @@ public class Response {
         return responseBody != null && !responseBody.equals("");
     }
 
+    // public methods
+    public String findHeader(String key) {
+        return header.get(key);
+    }
+
+    public Set<String> headerKeySet() {
+        return header.keySet();
+    }
+
+    public void addModel(String name, Object value) {
+        model.put(name, value);
+    }
+
+    public void addCookie(Cookie cookie) {
+        cookies.add(cookie);
+    }
+
+    public boolean hasViewName() {
+        return viewName != null && !viewName.equals("");
+    }
+
+    public String getRedirectUrl() {
+        return header.get(HttpHeaders.LOCATION.getName());
+    }
+
+    public void setRedirectUrl(String redirectUrl) {
+        header.put(HttpHeaders.LOCATION.getName(), redirectUrl);
+    }
+
+    // getter setter
     public Map<String, Object> getModel() {
         return model;
+    }
+
+    public List<Cookie> getCookies() {
+        return Collections.unmodifiableList(cookies);
+    }
+
+    public String getViewName() {
+        return viewName;
+    }
+
+    public void setViewName(String viewName) {
+        this.viewName = viewName;
     }
 
     public String getResponseBody() {
@@ -40,49 +81,5 @@ public class Response {
 
     public void setHttpStatus(HttpStatus httpStatus) {
         this.httpStatus = httpStatus;
-    }
-
-    public String getRedirectUrl() {
-        return header.get(LOCATION_HEADER);
-    }
-
-    public void setRedirectUrl(String redirectUrl) {
-        header.put(LOCATION_HEADER, redirectUrl);
-    }
-
-    public String getViewName() {
-        return viewName;
-    }
-
-    public void addModel(String name, Object value) {
-        model.put(name, value);
-    }
-
-    public void setViewName(String viewName) {
-        this.viewName = viewName;
-    }
-
-    public void addHeader(String key, String value) {
-        header.put(key, value);
-    }
-
-    public String findHeader(String key) {
-        return header.get(key);
-    }
-
-    public Set<String> headerKeySet() {
-        return header.keySet();
-    }
-
-    public void addCookie(Cookie cookie) {
-        cookies.add(cookie);
-    }
-
-    public List<Cookie> getCookies() {
-        return Collections.unmodifiableList(cookies);
-    }
-
-    public boolean hasViewName() {
-        return viewName != null && !viewName.equals("");
     }
 }
