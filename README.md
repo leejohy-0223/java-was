@@ -223,3 +223,90 @@ GET 요청에 request-body 를 보내도 되는지에 대해서는 아직 논쟁
 
 - 쿠키 설정(Set-Cookie) 시 cookie name + Path를 동일하게 작성해줘야 덮어씌워진다는 것을 알게 되었습니다. 여러 쿠키를 한꺼번에 설정할 경우에도 각각 Set-Cookie 헤더를 작성해줘야합니다.
 - 단위테스트를 적용하기 위해 클래스의 역할을 분리해보았습니다. 기존에 무지성으로 사용하던 @Mock을 활용한 테스트에 익숙했던 터라 의존성 있는 객체를 어떤 방법으로 stub할지를 고민해보았습니다. 
+
+
+---
+
+## 5단계 동적 HTML
+
+### To-do List
+
+- [X] 접근하고 있는 사용자가 “로그인” 상태일 경우 ``/user/list`` 에서 사용자 목록을 출력한다.
+- [X] 로그인하지 않은 상태라면 로그인 페이지로 이동한다.
+
+
+### 정리
+
+---
+
+### Jay
+
+#### 알게된 것
+
+**리플렉션을 이용한 동적 html 생성**
+
+이전에 템플릿 엔진으로 mustache 를 사용할때 반환한 객체에 getter 가 없어도 화면에 출력되는 이유에 대해 찾아본 적이 있습니다.
+
+![image](https://user-images.githubusercontent.com/45728407/161212370-dd03fbef-6161-42a8-bd03-041c0319ccd8.png)
+
+mustache 내부에서 객체의 getter 로 값에 접근하는것이 아니라, **reflection 으로 속성에 접근**한다는 것을 알 수 있었습니다.
+그래서 이 부분을 참고하여 저희 프로젝트에도 **reflection 을 이용하여 동적 HTML 을 생성하는 로직**을 추가하였습니다.
+
+```html
+<thead>
+ <tr> <th>#</th> <th>사용자 아이디</th> <th>이름</th> <th>이메일</th><th></th> </tr>
+</thead>
+<tbody>
+{{^users}}
+ <tr>
+     <th scope="row"> {{index}} </th> <td>{{userId}}</td> <td>{{name}}</td> <td>{{email}}</td><td><a href="#" class="btn btn-success" role="button">수정</a></td>
+ </tr>
+{{/users}}
+</tbody>
+```
+
+mustache 는 Field 를 반환하여 다른 부분에서 동적 HTML 생성을 처리하였지만,
+저희는 간소화 하여 해당 Field 의 값을 바로 HTML 에 삽입하는 형태로 구현하였습니다.
+
+```java
+public class ViewResolver {
+    private static final String LIST_VIEW_TAG_START = "{{^%s}}";
+    private static final String LIST_VIEW_TAG_END = "{{/%s}}";
+    private static final String VALUE_TAG = "{{%s}}";
+  
+    private final String viewResourcePath;
+  
+    // .... 생략
+  
+    private String resolveObjectFields(String loopTarget, Field[] declaredFields, Object object) {
+        try {
+            for (Field declaredField : declaredFields) {
+                declaredField.setAccessible(true);
+                Object value = declaredField.get(object);
+
+                String replaceTarget = String.format(VALUE_TAG, declaredField.getName());
+                if (loopTarget.contains(replaceTarget) && value != null) {
+					loopTarget = loopTarget.replace(replaceTarget, value.toString());
+                }
+			 }
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+        }
+
+        return loopTarget;  
+    }
+}
+```
+
+`resolveObjectFields` 메소드의 `loopTarget` 이 위의 html 에서 `{{^users}}` 와 `{{/users}}` 사이의 반복될 html 입니다.
+그 html 에서 `userId`, `name` 등의 속성을 리플렉션을 통해 주입해주게 됩니다.
+
+---
+
+### Lucid
+
+#### 알게된 것
+
+일전에 ``mustache``사용 시 모델에 getter가 없음에도 정상적으로 객체의 프로퍼티 값이 rendering이 되어 의문을 가진 도중, 내부적으로 리플렉션 기능을 사용한다는 ``Jay``의 말씀을 듣고 ``"아, 리플렉션으로 저렇게 할 수 있구나"`` 정도로만 생각하고 넘어갔었습니다.  
+이번 과정에서 ``mustache``에서의 컨셉과 유사하게 리플렉션 기능을 활용해서 프로퍼티에 직접 접근할 수 있는 방법을 적용하게 되어 매우 편리하게 동적 랜더링을 구현할 수 있었습니다.  
+기능이 잘 작동하는 것과는 별개로, private으로 지정해 둔 객체의 내부 상태들이 문제 없이 open 될 수 있다는 사실을 알고 정말 필요한 상황에서만 활용해야겠다는 생각이 들었습니다.  
