@@ -22,17 +22,25 @@ public class LoginServlet extends HttpServlet {
         if (DataBase.isUserIdExist(userId)) {
             User user = DataBase.findByUserId(userId);
             if (user.isPassword(password)) {
-                String sessionId = Session.generateSessionId();
-                Session.setAttribute(sessionId, "userId", userId);
-                Cookie sessionIdCookie = new Cookie("sessionId", sessionId);
-                sessionIdCookie.setPath("/");
-                sessionIdCookie.setMaxAge(60 * 30);
-                response.addCookie(sessionIdCookie);
-                response.setRedirectUrl("/index.html");
-                response.setHttpStatus(HttpStatus.FOUND);
-                return response;
+                return generateSessionAndCookie(response, userId);
             }
         }
+        return redirectLoginFail(response);
+    }
+
+    private Response generateSessionAndCookie(Response response, String userId) {
+        String sessionId = Session.generateSessionId();
+        Session.setAttribute(sessionId, "userId", userId);
+        Cookie sessionIdCookie = new Cookie("sessionId", sessionId);
+        sessionIdCookie.setPath("/");
+        sessionIdCookie.setMaxAge(60 * 30);
+        response.addCookie(sessionIdCookie);
+        response.setRedirectUrl("/index.html");
+        response.setHttpStatus(HttpStatus.FOUND);
+        return response;
+    }
+
+    private Response redirectLoginFail(Response response) {
         response.setRedirectUrl("/user/login_failed.html");
         response.setHttpStatus(HttpStatus.FOUND);
         return response;

@@ -9,9 +9,11 @@ import java.util.Map;
 
 public class ViewResolver {
 
+    private static final String LIST_VIEW_TAG_START = "{{^%s}}";
+    private static final String LIST_VIEW_TAG_END = "{{/%s}}";
+    private static final String VALUE_TAG = "{{%s}}";
+
     private final String viewResourcePath;
-    private static final String listViewTagStart = "{{^%s}}";
-    private static final String listViewTagEnd = "{{/%s}}";
 
     public ViewResolver(String viewResourcePath) {
         this.viewResourcePath = viewResourcePath;
@@ -22,13 +24,10 @@ public class ViewResolver {
 
         for (String name : model.keySet()) {
             Object value = model.get(name);
-
             if (value instanceof List) {
-                file = resolveList(file, name, (List) value);
-                continue;
+                file = resolveList(file, name, (List)value);
             }
         }
-
         return file;
     }
 
@@ -46,15 +45,21 @@ public class ViewResolver {
         return file.replace(loopTarget, loopResolvedResult.toString());
     }
 
-    private String resolveObjectFields(String loopTarget, Field[] declaredFields, Object object) {
-        String valueTag = "{{%s}}";
+    private String parseLoopTarget(String file, String name) {
+        String startTag = String.format(LIST_VIEW_TAG_START, name);
+        int startIndex = file.indexOf(startTag);
+        int endIndex = file.indexOf(String.format(LIST_VIEW_TAG_END, name));
 
+        return file.substring(startIndex + startTag.length(), endIndex);
+    }
+
+    private String resolveObjectFields(String loopTarget, Field[] declaredFields, Object object) {
         try {
             for (Field declaredField : declaredFields) {
                 declaredField.setAccessible(true);
                 Object value = declaredField.get(object);
 
-                String replaceTarget = String.format(valueTag, declaredField.getName());
+                String replaceTarget = String.format(VALUE_TAG, declaredField.getName());
                 if (loopTarget.contains(replaceTarget) && value != null) {
                     loopTarget = loopTarget.replace(replaceTarget, value.toString());
                 }
@@ -66,17 +71,8 @@ public class ViewResolver {
         return loopTarget;
     }
 
-    private String parseLoopTarget(String file, String name) {
-        String startTag = String.format(listViewTagStart, name);
-        int startIndex = file.indexOf(startTag);
-        int endIndex = file.indexOf(String.format(listViewTagEnd, name));
-
-        return file.substring(startIndex + startTag.length(), endIndex);
-    }
-
     private String removeListViewTags(String file, String name) {
-        file = file.replace(String.format(listViewTagStart, name), "");
-        return file.replace(String.format(listViewTagEnd, name), "");
-
+        file = file.replace(String.format(LIST_VIEW_TAG_START, name), "");
+        return file.replace(String.format(LIST_VIEW_TAG_END, name), "");
     }
 }
